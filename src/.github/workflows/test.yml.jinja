@@ -98,15 +98,27 @@ jobs:
           sudo apt-get install -y wkhtmltopdf
 {%- endif %}
 
+{%- if odoo_edition == "enterprise" %}
+      - name: Preflight — ODOO_ENTERPRISE_TOKEN
+        env:
+          ODOO_ENTERPRISE_TOKEN: {{ '${{' }} secrets.ODOO_ENTERPRISE_TOKEN }}
+        run: |
+          if [ -z "$ODOO_ENTERPRISE_TOKEN" ]; then
+            echo "::error::odoo_edition=enterprise requires the ODOO_ENTERPRISE_TOKEN repository secret."
+            echo "Set it via: gh secret set ODOO_ENTERPRISE_TOKEN --repo <owner>/<repo>"
+            echo "The token needs 'repo' scope on odoo/enterprise."
+            echo "Or switch to community: edit .copier-answers.yml (odoo_edition: community) then run copier update."
+            exit 1
+          fi
+{%- endif %}
+
       - name: Clone Odoo {{ odoo_version }}
         run: |
           git clone --depth=1 --branch {{ odoo_version }} \
             https://github.com/odoo/odoo.git ../odoo
 {%- if odoo_edition == "enterprise" %}
-          # Enterprise requires an authenticated remote; provide
-          # `ODOO_ENTERPRISE_TOKEN` as a repository secret.
           git clone --depth=1 --branch {{ odoo_version }} \
-            https://x-access-token:${{ '{{' }} secrets.ODOO_ENTERPRISE_TOKEN }}@github.com/odoo/enterprise.git \
+            https://x-access-token:{{ '${{' }} secrets.ODOO_ENTERPRISE_TOKEN }}@github.com/odoo/enterprise.git \
             ../enterprise
 {%- endif %}
 
