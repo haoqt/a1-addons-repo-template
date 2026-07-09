@@ -91,12 +91,23 @@ jobs:
           restore-keys: |
             {{ '${{' }} runner.os }}-pip-{{ odoo_version }}-
 
-{%- if include_wkhtmltopdf %}
-      - name: Install wkhtmltopdf
+      - name: Install Odoo system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wkhtmltopdf
+          # Build deps for python-ldap, lxml, Pillow, cryptography, psycopg2
+          # (Odoo's requirements.txt pulls source dists on the ubuntu runner
+          # for some of these — matches Odoo's own install docs.)
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            libldap2-dev libsasl2-dev \
+            libxml2-dev libxslt1-dev \
+            libjpeg-dev zlib1g-dev libtiff-dev \
+            libffi-dev libssl-dev \
+            libpq-dev \
+{%- if include_wkhtmltopdf %}
+            wkhtmltopdf \
 {%- endif %}
+            libpng-dev libfreetype-dev
 
 {%- if odoo_edition == "enterprise" %}
       - name: Preflight — ODOO_ENTERPRISE_TOKEN
