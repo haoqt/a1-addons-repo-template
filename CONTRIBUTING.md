@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving `a1-addons-repo-template`.
+Thanks for improving `odoo-project-github-template`.
 
 ## Ground rules
 

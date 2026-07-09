@@ -1,4 +1,4 @@
-# a1-addons-repo-template
+# odoo-project-github-template
 
 A [Copier](https://copier.readthedocs.io/) template for bootstrapping and
 maintaining Odoo addon repositories at A1. Supports Odoo **10.0 → 19.0**,
@@ -27,15 +27,15 @@ stripped out and replaced by A1 defaults.
 ### 1. Create a new addon repository
 
 ```bash
-copier copy https://github.com/haoqt/a1-addons-repo-template.git my-new-repo
+copier copy https://github.com/haoqt/odoo-project-github-template.git my-new-repo
 cd my-new-repo
-git init && git add -A && git commit -m "Initial commit from a1-addons-repo-template"
+git init && git add -A && git commit -m "Initial commit from odoo-project-github-template"
 ```
 
 Or from a local checkout (useful during template development):
 
 ```bash
-copier copy --trust /Users/visnu/Odoo/Onnet/SourceCode/a1-addons-repo-template ~/my-new-repo
+copier copy --trust /Users/visnu/Odoo/Onnet/SourceCode/odoo-project-github-template ~/my-new-repo
 ```
 
 Copier will prompt for each variable interactively. To skip prompts and
@@ -48,7 +48,7 @@ copier copy --trust --defaults \
     --data repo_slug=server-tools \
     --data repo_name="A1 Server Tools" \
     --data repo_description="Server-side utilities." \
-    gh:a1/a1-addons-repo-template ~/server-tools
+    gh:haoqt/odoo-project-github-template ~/server-tools
 ```
 
 ### 2. Update an existing repository
@@ -225,7 +225,7 @@ copier copy --trust --defaults \
     --data repo_slug=warehouse-utils \
     --data repo_name="A1 Warehouse Utils" \
     --data repo_description="Barcode & logistics helpers." \
-    gh:a1/a1-addons-repo-template ~/warehouse-utils
+    gh:haoqt/odoo-project-github-template ~/warehouse-utils
 ```
 
 ### Enterprise, stricter lint, extra ruff rules
@@ -239,7 +239,7 @@ copier copy --trust --defaults \
     --data repo_slug=account-a1 \
     --data repo_name="A1 Account Extensions" \
     --data repo_description="Chart-of-accounts and reporting patches." \
-    gh:a1/a1-addons-repo-template ~/account-a1
+    gh:haoqt/odoo-project-github-template ~/account-a1
 ```
 
 ### Skip pylint-odoo, keep ruff only
@@ -248,7 +248,7 @@ copier copy --trust --defaults \
 copier copy --trust --defaults \
     --data use_pylint_odoo=false \
     --data repo_slug=... --data repo_name=... --data repo_description=... \
-    gh:a1/a1-addons-repo-template ~/dest
+    gh:haoqt/odoo-project-github-template ~/dest
 ```
 
 ### Running lints locally
@@ -296,7 +296,7 @@ Release notes live in [`CHANGELOG.md`](./CHANGELOG.md). Pin a specific
 release with `--vcs-ref=vX.Y.Z`:
 
 ```bash
-copier copy --trust --vcs-ref=v1.0.1 gh:a1/a1-addons-repo-template ~/dest
+copier copy --trust --vcs-ref=v1.0.1 gh:haoqt/odoo-project-github-template ~/dest
 ```
 
 ---
