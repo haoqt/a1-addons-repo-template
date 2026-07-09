@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Odoo
+*.pot~
+.odoo-venv/
+odoo.log
+*.sqlite3
+
+# Virtualenv & tooling caches
+.venv/
+.env
+.envrc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDEs & OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Node (for JS asset dev)
+node_modules/
+{% if odoo_version >= 18.0 -%}
+# Odoo 18+ static asset build output
+*/static/src/*.min.js
+*/static/src/*.min.css
+{%- endif %}

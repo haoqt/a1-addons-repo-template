@@ -1,0 +1,201 @@
+# Copier template configuration for A1 addons repositories.
+# Reference: https://copier.readthedocs.io/
+_templates_suffix: .jinja
+_subdirectory: src
+_min_copier_version: "9"
+
+# ---------------------------------------------------------------------------
+# Odoo version
+# ---------------------------------------------------------------------------
+odoo_version:
+  type: float
+  default: 18.0
+  choices:
+    - 10.0
+    - 11.0
+    - 12.0
+    - 13.0
+    - 14.0
+    - 15.0
+    - 16.0
+    - 17.0
+    - 18.0
+    - 19.0
+  help: Which Odoo version are we deploying in this branch?
+
+odoo_edition:
+  type: str
+  default: enterprise
+  choices:
+    - community
+    - enterprise
+  help: >
+    Which Odoo edition is this repository targeting? Enterprise pulls the
+    `odoo` + `odoo-enterprise` combination during CI; community pulls only
+    `odoo`.
+
+target_branch:
+  type: str
+  default: "{{ odoo_version }}"
+  help: >
+    Git branch name of THIS repository (independent from `odoo_version`).
+    Used as the branch filter for CI triggers (`on.push.branches`,
+    `on.pull_request.branches`). Defaults to the Odoo version string
+    (matches OCA convention), but you can override with e.g. `prod`,
+    `main`, `18.0-a1-prod`, etc.
+
+extra_ci_branches:
+  type: yaml
+  default: []
+  help: >
+    Additional branch names that should also trigger CI (besides
+    `target_branch`). Example: ["staging", "hotfix/*"]
+
+# ---------------------------------------------------------------------------
+# Organization & repository identity
+# ---------------------------------------------------------------------------
+org_slug:
+  type: str
+  default: a1
+  help: >
+    Organization slug on GitHub. If you are creating
+    https://github.com/a1/server-tools, then write "a1" here.
+
+org_name:
+  type: str
+  default: A1
+  help: >
+    Human-readable organization name. Used in the `author` key of
+    __manifest__ files.
+
+repo_slug:
+  type: str
+  help: >
+    Repository slug. If you are creating https://github.com/a1/server-tools,
+    then write "server-tools" here.
+
+repo_name:
+  type: str
+  help: >
+    Human-readable project name. `server-tools` could be named
+    "Tools for server environment(s)".
+
+repo_website:
+  type: str
+  default: "https://github.com/{{ org_slug }}/{{ repo_slug }}"
+  help: >
+    Project website. Used in the `website` key of __manifest__ files.
+
+repo_description:
+  type: str
+  help: One-paragraph description of what this repository is about.
+
+default_license:
+  type: str
+  default: OPL-1
+  choices:
+    - OPL-1
+    - LGPL-3
+    - AGPL-3
+    - Other proprietary
+  help: >
+    Default license used by the CI license check and in module manifests.
+    OPL-1 is the Odoo Proprietary License, standard for private A1 addons.
+
+# ---------------------------------------------------------------------------
+# Tooling toggles
+# ---------------------------------------------------------------------------
+use_ruff:
+  default: "{% if odoo_version < 17.0 -%}no{% else %}yes{% endif %}"
+  type: bool
+  help: Use ruff and ruff-format instead of flake8, autoflake, pyupgrade, isort, black.
+  when: "{{ odoo_version >= 14.0 }}"
+
+additional_ruff_rules:
+  type: yaml
+  default: []
+  help: Extra ruff rules to enable, on top of the template defaults.
+  when: "{{ use_ruff }}"
+
+use_pre_commit:
+  type: bool
+  default: yes
+  help: Generate .pre-commit-config.yaml with lint/format hooks.
+
+use_pylint_odoo:
+  type: bool
+  default: yes
+  help: >
+    Add `pylint-odoo` (Odoo-aware pylint checks) to pre-commit and generate
+    a `.pylintrc` tuned for Odoo modules.
+
+pylint_odoo_version:
+  type: str
+  default: |-
+    {% if odoo_version >= 17.0 -%}
+        9.3.4
+    {%- elif odoo_version >= 14.0 -%}
+        8.0.19
+    {%- elif odoo_version >= 12.0 -%}
+        3.5.0
+    {%- else -%}
+        1.6.2
+    {%- endif %}
+  help: >
+    Which pylint-odoo release to pin. Overridable when you need a specific
+    hotfix; defaults picked to match the Odoo version.
+  when: "{{ use_pylint_odoo }}"
+
+# ---------------------------------------------------------------------------
+# CI toggles
+# ---------------------------------------------------------------------------
+postgres_image:
+  type: str
+  default: ""
+  help: >
+    Custom PostgreSQL Docker image to use in CI (e.g. `pgvector/pgvector:pg16`).
+    Leave empty to use the default image for the Odoo version.
+
+include_wkhtmltopdf:
+  type: bool
+  default: no
+  help: Install wkhtmltopdf in CI (needed for PDF report tests).
+
+enable_checklog_odoo:
+  type: bool
+  default: "{% if odoo_version < 18.0 -%}no{% else %}yes{% endif %}"
+  help: Fail tests on Odoo log warnings (via checklog-odoo).
+
+github_check_license:
+  type: bool
+  default: yes
+  help: CI checks each module's manifest license against the allow-list.
+
+github_enforce_dev_status_compatibility:
+  type: bool
+  default: yes
+  help: CI checks the module's development_status against its dependencies.
+
+github_ci_extra_env:
+  type: yaml
+  default: {}
+  help: |
+    Extra environment variables injected into the CI test job.
+    Example: {"KEY": "VALUE"}
+
+rebel_module_groups:
+  type: yaml
+  default: []
+  help: >
+    Modules that cannot be installed together with the rest. Listed here they
+    run in isolated CI jobs. Group with commas to keep some together.
+    Example: ["rebel_module_1,rebel_module_2", another_rebel_module]
+
+# ---------------------------------------------------------------------------
+# Copier internals
+# ---------------------------------------------------------------------------
+_answers_file: .copier-answers.yml
+
+_migrations: []
+
+_tasks: []

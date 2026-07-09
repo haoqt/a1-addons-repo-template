@@ -1,0 +1,15 @@
+[flake8]
+max-line-length = 88
+max-complexity = 16
+# B = bugbear, W503 = line break before binary op (PEP 8 now recommends it)
+select = C,E,F,W,B,B9
+ignore =
+    E203,
+    E501,
+    W503
+exclude =
+    .git,
+    __pycache__,
+    */migrations/*,
+    */static/lib/*,
+    setup/*

@@ -1,0 +1,54 @@
+# {{ repo_name }}
+
+{{ repo_description }}
+
+Odoo **{{ odoo_version }}** ({{ odoo_edition }} edition) addons repository,
+maintained by **{{ org_name }}**.
+
+- Website: {{ repo_website }}
+- Default license: `{{ default_license }}`
+
+## Structure
+
+Each subdirectory is a self-contained Odoo module. Modules live at the
+repository root — one folder per module, matching the standard
+`{{ '{addon}/__manifest__.py' }}` layout.
+
+## Install
+
+Clone next to your other Odoo addons paths and add this directory to
+`--addons-path`:
+
+```bash
+git clone https://github.com/{{ org_slug }}/{{ repo_slug }}.git
+odoo-bin -c odoo.conf --addons-path=/path/to/odoo/addons,/path/to/{{ repo_slug }}
+```
+
+Per-module Python requirements live in each module's `requirements.txt` (if
+any). Install the aggregate with:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Development
+
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+CI runs the same hooks plus the Odoo test matrix on every PR
+(`.github/workflows/`).
+
+## License
+
+Modules default to `{{ default_license }}`. Per-module license is declared in
+each `__manifest__.py`.
+
+---
+
+_This repository was scaffolded from
+[`a1-addons-repo-template`](https://github.com/a1/a1-addons-repo-template).
+Run `copier update` to pull in template changes._

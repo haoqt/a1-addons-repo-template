@@ -1,0 +1,30 @@
+{%- set py_version = {
+    10.0: "2.7",
+    11.0: "3.5",
+    12.0: "3.6",
+    13.0: "3.6",
+    14.0: "3.6",
+    15.0: "3.8",
+    16.0: "3.10",
+    17.0: "3.10",
+    18.0: "3.10",
+    19.0: "3.12",
+}[odoo_version] -%}
+{%- set ci_branches = [target_branch] + extra_ci_branches -%}
+name: pre-commit
+
+on:
+  pull_request:
+    branches: [{{ ci_branches | map('tojson') | join(', ') }}]
+  push:
+    branches: [{{ ci_branches | map('tojson') | join(', ') }}]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "{{ py_version }}"
+      - uses: pre-commit/action@v3.0.1

@@ -1,0 +1,189 @@
+{%- set py_version = {
+    10.0: "2.7",
+    11.0: "3.5",
+    12.0: "3.6",
+    13.0: "3.6",
+    14.0: "3.6",
+    15.0: "3.8",
+    16.0: "3.10",
+    17.0: "3.10",
+    18.0: "3.10",
+    19.0: "3.12",
+}[odoo_version] -%}
+{%- set default_pg = {
+    10.0: "postgres:9.6",
+    11.0: "postgres:10",
+    12.0: "postgres:10",
+    13.0: "postgres:12",
+    14.0: "postgres:13",
+    15.0: "postgres:13",
+    16.0: "postgres:14",
+    17.0: "postgres:15",
+    18.0: "postgres:16",
+    19.0: "postgres:16",
+}[odoo_version] -%}
+{%- set pg_image = postgres_image or default_pg -%}
+{%- set ci_branches = [target_branch] + extra_ci_branches -%}
+name: test
+
+on:
+  pull_request:
+    branches: [{{ ci_branches | map('tojson') | join(', ') }}]
+  push:
+    branches: [{{ ci_branches | map('tojson') | join(', ') }}]
+
+concurrency:
+  group: ${{ '{{' }} github.workflow }}-${{ '{{' }} github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "default"
+            makepot: "false"
+{%- for group in rebel_module_groups %}
+          - name: "rebel-{{ loop.index }}"
+            modules: "{{ group }}"
+            makepot: "false"
+{%- endfor %}
+    services:
+      postgres:
+        image: {{ pg_image }}
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: odoo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      ODOO_VERSION: "{{ odoo_version }}"
+      ODOO_EDITION: "{{ odoo_edition }}"
+      PGHOST: localhost
+      PGUSER: odoo
+      PGPASSWORD: odoo
+{%- for k, v in github_ci_extra_env.items() %}
+      {{ k }}: "{{ v }}"
+{%- endfor %}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ '{{' }} github.event.repository.name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "{{ py_version }}"
+          cache: pip
+
+{%- if include_wkhtmltopdf %}
+      - name: Install wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+{%- endif %}
+
+      - name: Clone Odoo {{ odoo_version }}
+        run: |
+          git clone --depth=1 --branch {{ odoo_version }} \
+            https://github.com/odoo/odoo.git ../odoo
+{%- if odoo_edition == "enterprise" %}
+          # Enterprise requires an authenticated remote; provide
+          # `ODOO_ENTERPRISE_TOKEN` as a repository secret.
+          git clone --depth=1 --branch {{ odoo_version }} \
+            https://x-access-token:${{ '{{' }} secrets.ODOO_ENTERPRISE_TOKEN }}@github.com/odoo/enterprise.git \
+            ../enterprise
+{%- endif %}
+
+      - name: Install Odoo requirements
+        working-directory: ../odoo
+        run: |
+          pip install -U pip wheel
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Install repo requirements
+        working-directory: ${{ '{{' }} github.event.repository.name }}
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+{%- if enable_checklog_odoo %}
+          pip install click-odoo-contrib
+{%- endif %}
+{%- if use_pylint_odoo %}
+          pip install "pylint-odoo=={{ pylint_odoo_version }}"
+
+      - name: pylint-odoo
+        working-directory: ${{ '{{' }} github.event.repository.name }}
+        run: |
+          PY_FILES=$(git ls-files '*/*.py' | grep -v '^setup/' | tr '\n' ' ')
+          if [ -z "$PY_FILES" ]; then
+              echo "No module .py files; skipping pylint-odoo."
+              exit 0
+          fi
+          pylint --rcfile=.pylintrc $PY_FILES
+{%- endif %}
+
+{%- if github_check_license %}
+      - name: License check
+        working-directory: ${{ '{{' }} github.event.repository.name }}
+        run: |
+          python - <<'PY'
+          import ast, glob, sys
+          allowed = {"{{ default_license }}", "LGPL-3", "AGPL-3", "OPL-1"}
+          bad = []
+          for manifest in glob.glob("*/__manifest__.py"):
+              with open(manifest) as f:
+                  data = ast.literal_eval(f.read())
+              lic = data.get("license", "LGPL-3")
+              if lic not in allowed:
+                  bad.append((manifest, lic))
+          if bad:
+              for m, l in bad:
+                  print(f"::error file={m}::disallowed license '{l}'")
+              sys.exit(1)
+          PY
+{%- endif %}
+
+      - name: Determine modules to test
+        id: modules
+        working-directory: ${{ '{{' }} github.event.repository.name }}
+        run: |
+          if [ -n "${{ '{{' }} matrix.modules }}" ]; then
+            echo "MODS=${{ '{{' }} matrix.modules }}" >> "$GITHUB_OUTPUT"
+          else
+            MODS=$(ls -d */__manifest__.py 2>/dev/null | xargs -n1 dirname | paste -sd, -)
+            echo "MODS=$MODS" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests
+        working-directory: ../odoo
+        env:
+          MODS: ${{ '{{' }} steps.modules.outputs.MODS }}
+        run: |
+          if [ -z "$MODS" ]; then
+            echo "No installable modules found; skipping."
+            exit 0
+          fi
+{%- if odoo_edition == "enterprise" %}
+          ADDONS_PATH="../odoo/addons,../enterprise,../${{ '{{' }} github.event.repository.name }}"
+{%- else %}
+          ADDONS_PATH="../odoo/addons,../${{ '{{' }} github.event.repository.name }}"
+{%- endif %}
+          python odoo-bin \
+            --addons-path="$ADDONS_PATH" \
+            -d test_db --db_host=localhost --db_user=odoo --db_password=odoo \
+            -i "$MODS" --test-enable --stop-after-init \
+{%- if enable_checklog_odoo %}
+            --log-level=warn 2>&1 | tee odoo.log
+          # Fail on any WARNING/ERROR
+          if grep -E "(WARNING|ERROR) odoo" odoo.log; then
+              echo "::error::Odoo logged warnings/errors during tests"; exit 1
+          fi
+{%- else %}
+            --log-level=info
+{%- endif %}
