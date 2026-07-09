@@ -27,7 +27,7 @@ stripped out and replaced by A1 defaults.
 ### 1. Create a new addon repository
 
 ```bash
-copier copy --trust gh:a1/a1-addons-repo-template my-new-repo
+copier copy https://github.com/haoqt/a1-addons-repo-template.git my-new-repo
 cd my-new-repo
 git init && git add -A && git commit -m "Initial commit from a1-addons-repo-template"
 ```
