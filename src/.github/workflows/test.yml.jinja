@@ -79,7 +79,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "{{ py_version }}"
-          cache: pip
+      # `setup-python`'s built-in `cache: pip` scans workspace root, but we
+      # check out the addon repo into a subdir (so Odoo can sit at ../odoo),
+      # so we manage the pip cache manually and key it off the checked-out
+      # requirements.txt (which may or may not exist).
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: {{ '${{' }} runner.os }}-pip-{{ odoo_version }}-{{ '${{' }} hashFiles(format('{0}/requirements.txt', github.event.repository.name)) }}
+          restore-keys: |
+            {{ '${{' }} runner.os }}-pip-{{ odoo_version }}-
 
 {%- if include_wkhtmltopdf %}
       - name: Install wkhtmltopdf
