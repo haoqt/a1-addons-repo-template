@@ -1,6 +1,6 @@
 [project]
 name = "a1-addons-repo-template"
-version = "0.1.0"
+version = "1.0.1"
 description = "Copier template for A1 Odoo addon repositories."
 readme = "README.md"
 requires-python = ">=3.10"
