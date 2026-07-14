@@ -5,6 +5,18 @@ All notable changes to `odoo-project-github-template` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-07-14
+
+### Fixed
+
+- **`.pylintrc`: drop `manifest-required-authors`.** Real projects
+  vendor 3rd-party addons (Cybrosys, iPredict, Sensible, Port Cities,
+  OCA…) that carry their own author names. Enforcing an author
+  allow-list floods CI with `manifest-required-author` warnings that
+  can only be silenced by patching upstream manifests. The setting is
+  removed from `[ODOOLINT]`; a NOTE explains when to turn it back on
+  (first-party-only repos). Matches BELGO baseline.
+
 ## [1.1.0] — 2026-07-14
 
 Removed ruff. Standardised the lint stack on
