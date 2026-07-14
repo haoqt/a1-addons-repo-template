@@ -105,18 +105,6 @@ default_license:
 # ---------------------------------------------------------------------------
 # Tooling toggles
 # ---------------------------------------------------------------------------
-use_ruff:
-  default: "{% if odoo_version < 17.0 -%}no{% else %}yes{% endif %}"
-  type: bool
-  help: Use ruff and ruff-format instead of flake8, autoflake, pyupgrade, isort, black.
-  when: "{{ odoo_version >= 14.0 }}"
-
-additional_ruff_rules:
-  type: yaml
-  default: []
-  help: Extra ruff rules to enable, on top of the template defaults.
-  when: "{{ use_ruff }}"
-
 use_pre_commit:
   type: bool
   default: yes

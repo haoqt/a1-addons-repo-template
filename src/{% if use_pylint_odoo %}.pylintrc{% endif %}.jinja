@@ -21,7 +21,7 @@ enable=
     # Odoo-specific checks (pylint-odoo)
     odoolint,
 {%- if is_modern %}
-    # pylint 2.x/3.x — bug-catching checks (formatting handled by ruff/black).
+    # pylint 2.x/3.x — bug-catching checks (formatting handled by black).
     # E1101 (no-member) is DELIBERATELY OMITTED: Odoo composes model
     # classes at runtime, so pylint cannot statically resolve inherited
     # methods and produces frequent false positives.

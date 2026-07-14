@@ -2,8 +2,9 @@
 
 A [Copier](https://copier.readthedocs.io/) template for bootstrapping and
 maintaining Odoo addon repositories at A1. Supports Odoo **10.0 → 19.0**,
-Community and Enterprise editions, with modern lint tooling (ruff,
-pylint-odoo, pre-commit) and CI baked in.
+Community and Enterprise editions, with a curated lint tooling stack
+(black + isort + pyupgrade + flake8 + prettier + OCA odoo-module hooks
++ pylint-odoo, all wired via pre-commit) and CI baked in.
 
 Modelled after
 [OCA/oca-addons-repo-template](https://github.com/OCA/oca-addons-repo-template),
@@ -109,39 +110,18 @@ copier copy … \
 
 ### Lint tooling
 
-`ruff`, `pylint-odoo` and pre-commit are all opt-out toggles with
-version-aware defaults.
+`pylint-odoo` and pre-commit are opt-out toggles.
 
 | Variable                    | Type      | Default (behaviour)                                                   |
 | --------------------------- | --------- | --------------------------------------------------------------------- |
 | `use_pre_commit`            | bool      | `yes` — generates `.pre-commit-config.yaml`                           |
-| `use_ruff`                  | bool      | `yes` for Odoo ≥ 17, `no` for older (falls back to black/isort/flake8) |
-| `additional_ruff_rules`     | list[str] | `[]` — extra rule codes on top of the template defaults               |
 | `use_pylint_odoo`           | bool      | `yes` — generates `.pylintrc` + wires pylint into pre-commit and CI   |
 | `pylint_odoo_version`       | string    | auto: `9.3.4` (Odoo ≥17) / `8.0.19` (14-16) / `3.5.0` (12-13) / `1.6.2` (≤11) |
 
-#### Customising ruff
-
-The generated `.ruff.toml` starts with a sensible base
-(`E, F, W, I, UP, B, C4, SIM`). Add project-specific rules at scaffold time:
-
-```bash
-copier copy … --data 'additional_ruff_rules=["N", "PL", "RUF"]'
-```
-
-or re-render with `copier update` after editing `.copier-answers.yml`:
-
-```yaml
-# .copier-answers.yml
-additional_ruff_rules:
-    - N        # pep8-naming
-    - RUF      # ruff-specific
-    - S        # bandit
-```
-
-Then run `copier update --trust`. If you need deeper changes (custom
-`per-file-ignores`, `format` options, etc.), edit `.ruff.toml` directly
-after generation — Copier’s three-way merge will preserve your edits on
+The generated `.pre-commit-config.yaml` runs: **file hygiene → black →
+isort → pyupgrade → flake8 → prettier → OCA odoo-module + po checks →
+pylint-odoo**. Configs live in `.flake8` and `.isort.cfg`. Edit them
+after generation — Copier's three-way merge preserves local edits on
 subsequent `copier update` runs.
 
 #### Customising pylint-odoo
@@ -198,9 +178,9 @@ Every generated repository ships with:
 ├── .editorconfig
 ├── .gitattributes
 ├── .gitignore
-├── .pre-commit-config.yaml       # ruff (17+) OR black+isort+flake8 (≤16)
-├── .ruff.toml                    # only when use_ruff
-├── .flake8, .isort.cfg           # only when NOT use_ruff and Odoo < 17
+├── .pre-commit-config.yaml       # black + isort + pyupgrade + flake8 + prettier + OCA + pylint-odoo
+├── .flake8
+├── .isort.cfg
 ├── .pylintrc                     # only when use_pylint_odoo
 ├── LICENSE                       # per default_license
 ├── README.md
@@ -228,13 +208,12 @@ copier copy --trust --defaults \
     gh:haoqt/odoo-project-github-template ~/warehouse-utils
 ```
 
-### Enterprise, stricter lint, extra ruff rules
+### Enterprise, stricter lint
 
 ```bash
 copier copy --trust --defaults \
     --data odoo_version=19.0 \
     --data odoo_edition=enterprise \
-    --data 'additional_ruff_rules=["N", "RUF", "S"]' \
     --data enable_checklog_odoo=true \
     --data repo_slug=account-a1 \
     --data repo_name="A1 Account Extensions" \
@@ -242,7 +221,7 @@ copier copy --trust --defaults \
     gh:haoqt/odoo-project-github-template ~/account-a1
 ```
 
-### Skip pylint-odoo, keep ruff only
+### Skip pylint-odoo
 
 ```bash
 copier copy --trust --defaults \

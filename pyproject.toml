@@ -1,6 +1,6 @@
 [project]
 name = "odoo-project-github-template"
-version = "1.0.1"
+version = "1.1.0"
 description = "Copier template for A1 Odoo addon repositories."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,6 +17,3 @@ dev = [
     "pytest-copie>=0.1",
 ]
 
-[tool.ruff]
-line-length = 100
-target-version = "py310"

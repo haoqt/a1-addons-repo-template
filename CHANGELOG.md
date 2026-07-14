@@ -5,6 +5,29 @@ All notable changes to `odoo-project-github-template` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-07-14
+
+Removed ruff. Standardised the lint stack on
+**black + isort + pyupgrade + flake8 + prettier + OCA odoo-module hooks +
+pylint-odoo** to match the A1 BELGO project baseline.
+
+### Removed
+
+- `use_ruff` and `additional_ruff_rules` copier variables.
+- `.ruff.toml` template file. Existing repos: `copier update --trust`
+  will drop the file; if you had local edits, save them elsewhere first.
+- Ruff branch of `.pre-commit-config.yaml.jinja`.
+
+### Added
+
+- `pyupgrade` and OCA `oca-checks-odoo-module` + `oca-checks-po` hooks
+  (previously only enabled behind `use_ruff=no`).
+
+### Changed
+
+- `.flake8` and `.isort.cfg` now always render (previously only when
+  `not use_ruff and odoo_version < 17.0`).
+
 ## [1.0.1] — 2026-07-09
 
 Patch release focused on making the generated CI actually go green
