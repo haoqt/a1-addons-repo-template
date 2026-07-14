@@ -47,11 +47,15 @@ enable=
 
 [ODOOLINT]
 readme-template-url=https://github.com/{{ org_slug }}/{{ repo_slug }}/blob/{{ target_branch }}/README.md
-manifest-required-authors={{ org_name }}
 manifest-required-keys=license
 manifest-deprecated-keys=description,active
 license-allowed=OPL-1,LGPL-3,AGPL-3,Other proprietary
 valid-odoo-versions={{ odoo_version }}
+# NOTE: `manifest-required-authors={{ org_name }}` is intentionally NOT
+# set. Many real projects vendor 3rd-party addons (Cybrosys, iPredict,
+# Sensible, Port Cities, OCA…) that carry their own author names;
+# enforcing an author allow-list would flood CI with unfixable warnings.
+# Turn it on only if your repo contains ONLY first-party code.
 
 [REPORTS]
 msg-template={C}:{line:3d},{column}:{obj}: {msg} [{msg_id}({symbol})]
